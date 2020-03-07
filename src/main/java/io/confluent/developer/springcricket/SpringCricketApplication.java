@@ -1,7 +1,7 @@
 package io.confluent.developer.springcricket;
 
+import com.example.application.domain.command.CreateTicket;
 import com.example.application.domain.command.CreateTicketCommand;
-
 
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -29,27 +29,21 @@ public class SpringCricketApplication {
   @Bean
   NewTopic newTicketTopic() {
     return new NewTopic("ticket", 3, (short) 1);
-
-
   }
 
   @Bean
-  public ProducerFactory<String, CreateTicketCommand> producerFactory() {
-    Map<String, Object> configProps = new HashMap<>();
-    configProps.put(
-        ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
-        "localhost:9092");
-    configProps.put(
-        ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
-        StringSerializer.class);
-    configProps.put(
-        ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-        JsonSerializer.class);
-    return new DefaultKafkaProducerFactory<>(configProps);
+  public ProducerFactory<?, ?> producerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+    props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+    props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+    props.put(JsonSerializer.TYPE_MAPPINGS,
+              "createTicket:com.example.application.domain.command.CreateTicket, createTicketCommand:com.example.application.domain.command.CreateTicketCommand");
+    return new DefaultKafkaProducerFactory<>(props);
   }
 
   @Bean
-  public KafkaTemplate<String, CreateTicketCommand> kafkaTemplate() {
+  public KafkaTemplate<?, ?> kafkaTemplate() {
     return new KafkaTemplate<>(producerFactory());
   }
 
@@ -65,13 +59,11 @@ public class SpringCricketApplication {
 @Component
 class Producer {
 
-  private final KafkaTemplate<String, CreateTicketCommand> kafkaTemplate;
+  private final KafkaTemplate kafkaTemplate;
 
   @EventListener(ApplicationStartedEvent.class)
   public void produce() {
-    log.info("hi");
-
     kafkaTemplate.send("ticket", new CreateTicketCommand("boom", 42));
-
+    kafkaTemplate.send("ticket", new CreateTicket("boom", "hello"));
   }
 }

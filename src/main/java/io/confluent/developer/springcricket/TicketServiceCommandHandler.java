@@ -16,17 +16,11 @@ public class TicketServiceCommandHandler {
 
   @KafkaHandler
   private void createTicket(CreateTicket command) {
-    log.info("Received command {}", command.toString());
+    log.info("Received CreateTicket command {}", command.toString());
   }
 
   @KafkaHandler
   private void createTicket(CreateTicketCommand command) {
-    log.info("Received command {}", command.toString());
+    log.info("Received CreateTicketCommand command {}", command.toString());
   }
-
-  /*
-  @KafkaHandler
-  private void createTicket(CreateTicketTest3 command) {
-              ....
-  }*/
 }
